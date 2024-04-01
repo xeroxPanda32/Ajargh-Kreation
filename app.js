@@ -1,29 +1,39 @@
-const express= require('express');
+const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser')
-const path = require('path')
-const adminRoutes = require('./routes/listing');
+const bodyParser = require('body-parser');
 const passport = require('./config/passport-jwtStrategy');
-const authRoutes = require('./routes/auth')
+const listingRoutes = require('./routes/listing');
+const authRoutes = require('./routes/auth');
+const reviewsRoutes = require('./routes/review');
+const userRoutes = require('./routes/user')
+require('dotenv').config();
 
 const app = express();
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname,'views'));
-
-
+// Middleware to parse JSON bodies
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true}));
+// Middleware to parse URL-encoded bodies
+app.use(bodyParser.urlencoded({ extended: true }));
+// Initialize Passport for authentication
 app.use(passport.initialize());
-app.use('/admin', adminRoutes);
+
+// Routes
+app.use('/listings', listingRoutes);
+app.use('/reviews', reviewsRoutes);
 app.use('/auth', authRoutes);
+app.use('/user', userRoutes)
 
-
-mongoose.connect('mongodb://127.0.0.1:27017/ajargh').then(()=>{
-    app.listen(3000, ()=>{
-        console.log("connected to Server");
-        console.log("db connected")
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        app.listen(process.env.PORT, () => {
+            console.log("Connected to Server");
+            console.log("Database connected");
+        });
     })
-}).catch((err)=>{
-    console.log(err);
-})
+    .catch((err) => {
+        console.log(err);
+    });
+
+// Comment: Make sure to handle other routes or errors if needed
+

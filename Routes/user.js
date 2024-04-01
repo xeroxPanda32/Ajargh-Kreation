@@ -1,50 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../model/user');
+const userController = require('../controllers/userController');
+const { isAdmin } = require('../middleware/middleware');
+const passport = require('../config/passport-jwtStrategy');
 
-router.get('/addUser', async (req, res) => {
-    try {
-        const users = await User.find({});
-        res.status(200).json(users);
-    }
-    catch (err) {
-        console.log(err);
-        res.status(500).json({ error: err.message });
-    };
-})
+// Route to fetch all users
+router.get('/', userController.getUsers);
 
-router.put('/addUser/:id', async (req, res) => {
-    const id = req.params.id;
-    const { name, email, password } = req.body;
-    try {
-        let user = await User.findById(id);
-        if (!user) {
-            return res.status(404).json({ error: "user not found" });
-        }
-         
-        user = {...user, name, email, password}
+// Route to update a user by ID
+router.put('/:id', userController.updateUser);
 
-        await user.save();
-        res.status(200).json({ message: "user updated successfully" });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: err.message });
-    }
-});
+// Route to delete a user by ID
+router.delete('/:id', passport.authenticate('jwt', { session: false }), isAdmin, userController.deleteUser);
 
-router.delete('/addUser/:id', async (req, res) => {
-    const id = req.params.id;
-    try {
-       const user = await User.findByIdAndDelete(id);
-       if (!user) {
-          return res.status(404).json({ error: "user not found" });
-       }
-       res.status(200).json({ message: "user deleted successfully" });
-    } catch (err) {
-       console.error(err);
-       res.status(500).json({ error: err.message });
-    }
- });
-
- 
 module.exports = router;
